@@ -103,7 +103,7 @@ export const loginUser = async (req: Request, res: Response) => {
         //     return res.status(403).json({ message: 'Account not verified', needsVerification: true, email: user.email });
         // }
 
-        const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, {expiresIn: '14d'})
+        const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '14d' })
 
         res.status(200).json({
             message: "Login successfull",
@@ -127,5 +127,41 @@ const otpSchema = zod.object({
 })
 
 export const verifyOtp = async (req: Request, res: Response) => {
-   
+    const response = otpSchema.safeParse(req.body)
+    const { email, otp } = req.body;
+
+    if (!response.success) {
+        return res.status(411).json({
+            message: "Error in the data"
+        }) 
+    }
+
+    try {
+        const otpRecord = await Otp.findOne({ email, otp, action: 'account_verification' })
+
+        if (!otpRecord) {
+            return res.status(400).json({
+                message: "invalid or expired OTP"
+            })
+        }
+
+        const user = await User.findOneAndUpdate({ email }, { isVerified: true });
+        await Otp.deleteOne({ _id: otpRecord._id });
+
+        const token = jwt.sign({ userId: user?._id, role: user?.role }, JWT_SECRET, { expiresIn: '14d' })
+
+        res.status(200).json({
+            message: "Account verified successfully. You can now log in.",
+            _id: user?.id,
+            name: user?.name,
+            email: user?.email,
+            role: user?.role,
+            token: token
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: (error as Error).message
+        })
+    }
 }

@@ -36,20 +36,20 @@ export const registerUser = async (req: Request, res: Response) => {
             })
         }
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password,salt)
+        const hashedPassword = await bcrypt.hash(password, salt)
 
         const newUser = await User.create({
             name,
             email,
             password: hashedPassword
         })
-        
+
         // const otp = generateOTP();
         // console.log(`OTP for ${email}: ${otp}`)
         // await Otp.create({email,otp, action: 'account_verification'})
         // await sendOtpEmail(email,otp,'account_verification');
-        
-        
+
+
         res.status(200).json({
             message: "User registered successfully , Please check your email to verify your account",
             email,
@@ -68,10 +68,64 @@ const loginSchema = zod.object({
 });
 
 export const loginUser = async (req: Request, res: Response) => {
-    
+    const response = loginSchema.safeParse(req.body);
+    const { email, password } = req.body;
 
+    if (!response.success) {
+        return res.status(411).json({
+            message: "Error in inputs"
+        })
+    }
+
+    try {
+        const user = await User.findOne({
+            email
+        })
+
+        if (!user) {
+            return res.status(400).json({
+                messgae: "Invalid credentials"
+            })
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) {
+            return res.status(400).json({
+                message: "Invalid credentails"
+            })
+        }
+
+        // if (!user.isVerified && user.role !== 'admin') {
+        //     const otp = generateOTP();
+        //     await Otp.findOneAndDelete({ email: user.email, action: 'account_verification' });
+        //     await Otp.create({ email: user.email, otp, action: 'account_verification' });
+        //     await sendOtpEmail(user.email, otp, 'account_verification');
+        //     return res.status(403).json({ message: 'Account not verified', needsVerification: true, email: user.email });
+        // }
+
+        const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, {expiresIn: '14d'})
+
+        res.status(200).json({
+            message: "Login successfull",
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            token: token
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            message: 'Server Error ' + (error as Error).message
+        })
+    }
 }
 
-export const verifyOtp = async (req: Request, res: Response) => {
+const otpSchema = zod.object({
+    email: zod.email(),
+    otp: zod.string()
+})
 
+export const verifyOtp = async (req: Request, res: Response) => {
+   
 }

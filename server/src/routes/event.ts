@@ -15,7 +15,7 @@ router.get('/:id', authMiddleware, getEventById);
 router.post('/' , authMiddleware , adminMiddleware , createEvent);
 
 //update an event (for admin only)
-router.put('/:id' ,authMiddleware, adminMiddleware, updateEvent);
+router.patch('/:id' ,authMiddleware, adminMiddleware, updateEvent);
 
 //delete an event (for admin only)
 router.delete('/:id', authMiddleware, adminMiddleware, deleteEvent);

@@ -147,9 +147,65 @@ export const confirmBooking: RequestHandler = async (req, res) => {
 }
 
 export const getMyBookings: RequestHandler = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const bookings = await Booking.find({ userId: req.user?._id }).populate('eventId')
 
+        res.status(200).json({
+            message: "Bookings fetched successfully",
+            bookings
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Server Error',
+            error: (error as Error).message
+        });
+    }
 }
+
 
 export const cancelBooking: RequestHandler = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) {
+            return res.status(404).json({
+                message: "Booking not found"
+            })
+        }
+
+        if (booking.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                message: "You do not have permission to cancel this booking"
+            });
+        }
+
+        if (booking.status === 'cancelled') {
+            return res.status(400).json({ message: "Booking already cancelled" });
+        }
+
+        booking.status = 'cancelled'
+        await booking.save();
+        await Event.updateOne(
+            { _id: booking.eventId._id },
+            { $inc: { totalSeats: 1 } }
+        );
+
+        res.status(200).json({
+            message: "Booking cancelled successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Server Error',
+            error: (error as Error).message
+        });
+    }
 }
+

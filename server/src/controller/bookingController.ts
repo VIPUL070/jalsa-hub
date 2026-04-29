@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { Otp } from "../models/otp.js";
-import { sendOtpEmail } from "../utils/email.js";
+import { sendBookingEmail, sendOtpEmail } from "../utils/email.js";
 import { Event } from "../models/events.js";
 import { Booking } from "../models/bookings.js";
 
@@ -36,10 +36,10 @@ export const bookEvent: RequestHandler = async (req, res) => {
         }
 
         // 2. Verify OTP 
-        const otpRecord = await Otp.findOne({ 
-            email: req.user.email, 
-            otp, 
-            action: 'event_booking' 
+        const otpRecord = await Otp.findOne({
+            email: req.user.email,
+            otp,
+            action: 'event_booking'
         });
 
         if (!otpRecord) {
@@ -89,7 +89,61 @@ export const bookEvent: RequestHandler = async (req, res) => {
 };
 
 export const confirmBooking: RequestHandler = async (req, res) => {
+    try {
+        const { paymentStatus } = req.body;
 
+        const booking = await Booking.findById(req.params.id).populate('eventId');
+
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not Found" });
+        }
+
+        if (booking.status === 'confirmed') {
+            return res.status(400).json({ message: "Booking is already confirmed" });
+        }
+
+        const event = await Event.findById(booking.eventId._id);
+        if (!event) {
+            return res.status(404).json({ message: "Associated event not found" });
+        }
+
+        if (event.availableSeats <= 0) {
+            return res.status(400).json({ message: 'No seats available to confirm this booking' });
+        }
+
+        booking.status = 'confirmed';
+        if (paymentStatus) {
+            booking.paymentStatus = paymentStatus;
+        }
+
+        await booking.save();
+        const updateResult = await Event.updateOne(
+            { _id: event._id, totalSeats: { $gt: 0 } },
+            { $inc: { totalSeats: -1 } }
+        );
+
+        // email will be send on admin confirmation
+        if (req.user?.email && req.user?.name) {
+            await sendBookingEmail(req.user.email, req.user.name, booking._id.toString());
+        }
+
+        if (updateResult.modifiedCount === 0) {
+            booking.status = 'pending';
+            await booking.save();
+            return res.status(400).json({ message: "Failed to secure seat. Event might be full." });
+        }
+
+        return res.status(200).json({
+            message: "Booking confirmed successfully",
+            booking
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: 'Server Error',
+            error: (error as Error).message
+        });
+    }
 }
 
 export const getMyBookings: RequestHandler = async (req, res) => {

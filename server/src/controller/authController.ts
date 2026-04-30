@@ -44,10 +44,10 @@ export const registerUser = async (req: Request, res: Response) => {
             password: hashedPassword
         })
 
-        // const otp = generateOTP();
-        // console.log(`OTP for ${email}: ${otp}`)
-        // await Otp.create({email,otp, action: 'account_verification'})
-        // await sendOtpEmail(email,otp,'account_verification');
+        const otp = generateOTP();
+        console.log(`OTP for ${email}: ${otp}`)
+        await Otp.create({email,otp, action: 'account_verification'})
+        await sendOtpEmail(email,otp,'account_verification');
 
 
         res.status(200).json({
@@ -95,13 +95,13 @@ export const loginUser = async (req: Request, res: Response) => {
             })
         }
 
-        // if (!user.isVerified && user.role !== 'admin') {
-        //     const otp = generateOTP();
-        //     await Otp.findOneAndDelete({ email: user.email, action: 'account_verification' });
-        //     await Otp.create({ email: user.email, otp, action: 'account_verification' });
-        //     await sendOtpEmail(user.email, otp, 'account_verification');
-        //     return res.status(403).json({ message: 'Account not verified', needsVerification: true, email: user.email });
-        // }
+        if (!user.isVerified && user.role !== 'admin') {
+            const otp = generateOTP();
+            await Otp.findOneAndDelete({ email: user.email, action: 'account_verification' });
+            await Otp.create({ email: user.email, otp, action: 'account_verification' });
+            await sendOtpEmail(user.email, otp, 'account_verification');
+            return res.status(403).json({ message: 'Account not verified', needsVerification: true, email: user.email });
+        }
 
         const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '14d' })
 

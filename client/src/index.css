@@ -1,18 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 @import "tailwindcss";
 
-:root {
-    /* app colors  */
+@theme {
+  /* ...app colors ... */
   --color-black: #0B0B0B;
   --color-white: #FFFFFF;
 
   --color-offwhite: #F9FAFB;
 
   /* app fonts */
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  font-family: var(--font-sans);
+  --font-onsite: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --font-onsite: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --size-font: 16px;
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-onsite);
+  -webkit-font-smoothing: antialiased;
 }

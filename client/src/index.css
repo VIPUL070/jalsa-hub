@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+@import "tailwindcss";
+
+:root {
+    /* app colors  */
+  --color-black: #0B0B0B;
+  --color-white: #FFFFFF;
+
+  --color-offwhite: #F9FAFB;
+
+  /* app fonts */
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
+}
+
+body {
+  font-family: var(--font-sans);
+}

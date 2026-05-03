@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import api from "../utils/axios";
 import type { AxiosError } from "axios";
 
-interface User {
+export interface User {
   name?: string;
   email?: string;
   password?: string;
@@ -11,7 +11,7 @@ interface User {
   token?: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   loading: boolean;
   register: (userData: User) => Promise<User>;

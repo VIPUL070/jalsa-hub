@@ -22,7 +22,7 @@ export const sendBookingEmail = async (userEmail:string, userName: string, event
             html: `
         <h2>Hi ${userName}!</h2>
         <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
-        <p>Thank you for choosing Eventora.</p>
+        <p>Thank you for choosing Jalsa Hub.</p>
       `
         };
         await transporter.sendMail(mailOptions);
@@ -34,9 +34,9 @@ export const sendBookingEmail = async (userEmail:string, userName: string, event
 
 export const sendOtpEmail = async ( userEmail :string, otp: string, type:string ) => {
     try {
-        const title = type === 'account_verification' ? 'Verify your Eventora Account' : 'Eventora Booking Verification';
+        const title = type === 'account_verification' ? 'Verify your Jalsa Hub Account' : 'Jalsa Hub Booking Verification';
         const msg = type === 'account_verification'
-            ? 'Please use the following OTP to verify your new Eventora account.'
+            ? 'Please use the following OTP to verify your new Jalsa Hub account.'
             : 'Please use the following OTP to verify and confirm your event booking.';
 
         const mailOptions = {

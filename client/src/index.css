@@ -17,6 +17,9 @@
 }
 
 body {
+  margin: 0;
   font-family: var(--font-onsite);
+  -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
+  background-color: var(--color-offwhite);
 }

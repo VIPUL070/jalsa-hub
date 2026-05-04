@@ -9,6 +9,7 @@ export interface User {
   password?: string;
   otp?: string;
   token?: string;
+  role?: string;
 }
 
 export interface AuthContextType {

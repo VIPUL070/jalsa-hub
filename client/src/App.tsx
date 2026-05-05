@@ -8,6 +8,7 @@ import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailed from './pages/PaymentFailed';
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (
@@ -32,6 +33,7 @@ const App = () => {
             }
           />
         </Routes>
+        <ToastContainer position="top-center" autoClose={1000} />
       </main>
     </div>
   );

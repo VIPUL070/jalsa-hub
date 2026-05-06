@@ -3,6 +3,7 @@ import { AuthContext, type AuthContextType } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import type { AxiosError } from "axios";
+import { FaEyeSlash, FaRegEye } from "react-icons/fa";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -15,6 +16,12 @@ const Register = () => {
 
   const { register, verifyOtp } = useContext(AuthContext) as AuthContextType;
   const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const toggleVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,7 +39,7 @@ const Register = () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      const axiosErr = err as AxiosError<{message: string}>;
+      const axiosErr = err as AxiosError<{ message: string }>;
       const msg = axiosErr.response?.data?.message || "Something went wrong";
       setError(msg);
       toast.error(msg);
@@ -87,13 +94,25 @@ const Register = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 transition shadow-sm"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 transition shadow-sm"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <span
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                  onClick={toggleVisibility}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash size={20} />
+                  ) : (
+                    <FaRegEye size={20} />
+                  )}
+                </span>
+              </div>
             </div>
           </>
         ) : (

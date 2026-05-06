@@ -16,7 +16,11 @@ export const sendBookingOTP: RequestHandler = async (req, res) => {
         }
 
         await Otp.findOneAndDelete({ email: req.user?.email, action: 'event_booking' });
-        await Otp.create({})
+        await Otp.create({
+            email: req.user.email,
+            otp,
+            action: 'event_booking'
+        })
         await sendOtpEmail(req.user?.email as string, otp, 'event_booking');
         res.status(200).json({
             message: 'OTP sent to email'
@@ -72,7 +76,7 @@ export const bookEvent: RequestHandler = async (req, res) => {
             eventId,
             amount: event.ticketPrice,
             status: 'pending',
-            paymentStatus: 'not_paid',
+            paymentStatus: 'non_paid',
         });
 
         await Otp.deleteOne({ _id: otpRecord._id });

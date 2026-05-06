@@ -6,7 +6,7 @@ import { bookEvent, cancelBooking, confirmBooking, getMyBookings, sendBookingOTP
 const router = Router();
 
 router.post('/', authMiddleware , bookEvent);
-router.post('send-otp', authMiddleware, sendBookingOTP);
+router.post('/send-otp', authMiddleware, sendBookingOTP);
 router.get('/my', authMiddleware , getMyBookings);
 router.patch('/:id/confirm', authMiddleware, adminMiddleware, confirmBooking);
 router.delete('/:id', authMiddleware, cancelBooking)

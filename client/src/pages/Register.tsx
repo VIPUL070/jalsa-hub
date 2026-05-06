@@ -138,7 +138,7 @@ const Register = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-black focus:ring-4 focus:ring-gray-200 transition shadow-md mt-4"
+          className="w-full bg-gray-900 text-white cursor-pointer font-bold py-3 rounded-lg hover:bg-black focus:ring-4 focus:ring-gray-200 transition shadow-md mt-4"
         >
           {loading
             ? "Processing..."

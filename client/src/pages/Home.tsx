@@ -22,7 +22,7 @@ interface Event {
   totalSeats: number;
 }
 
-const Home: React.FC = () => {
+const Home = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);

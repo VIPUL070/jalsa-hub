@@ -155,11 +155,13 @@ export const getMyBookings: RequestHandler = async (req, res) => {
         if (!req.user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        const bookings = await Booking.find({ userId: req.user?._id }).populate('eventId')
+        const bookings = req.user.role === 'admin'
+            ? await Booking.find().populate('eventId').populate('userId', 'name email').sort({ createdAt: -1 })
+            : await Booking.find({ userId: req.user?._id }).populate('eventId').sort({ createdAt: -1 });
 
         res.status(200).json({
             message: "Bookings fetched successfully",
-            bookings
+            bookings,
         })
 
     } catch (error) {

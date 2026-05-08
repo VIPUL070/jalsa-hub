@@ -28,7 +28,7 @@ export interface Booking {
   status: "pending" | "confirmed" | "cancelled";
   paymentStatus: "non_paid" | "paid";
   amount: number;
-  bookedAt: string;
+  booked_at: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
     category: "",
     totalSeats: "",
     ticketPrice: "",
-    image: "",
+    imageUrl: "",
   });
 
 const fetchData = async () => {
@@ -75,6 +75,24 @@ const fetchData = async () => {
       navigate("/login");
       return;
     }
+
+    const fetchData = async () => {
+  try {
+    const [eventsRes, bookingsRes] = await Promise.all([
+      api.get("/events"),
+      api.get("/bookings/my"),
+    ]);
+    console.log(eventsRes);
+    console.log(bookingsRes)
+    setEvents(eventsRes.data.events || []);
+    setBookings(bookingsRes.data.bookings || []);
+    
+  } catch (error) {
+    console.error("Error fetching admin data", error);
+  } finally {
+    setLoading(false);
+  }
+};
     fetchData();
   }, [user, navigate, authLoading]);
 
@@ -91,7 +109,7 @@ const fetchData = async () => {
         category: "",
         totalSeats: "",
         ticketPrice: "",
-        image: "",
+        imageUrl: "",
       });
       fetchData();
     } catch (error) {
@@ -291,9 +309,9 @@ const fetchData = async () => {
                 type="text"
                 placeholder="Image URL"
                 className="w-full border px-4 py-3 rounded-lg focus:ring-2 focus:ring-gray-700 outline-none transition"
-                value={formData.image}
+                value={formData.imageUrl}
                 onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.value })
+                  setFormData({ ...formData, imageUrl: e.target.value })
                 }
               />
             </div>
@@ -309,7 +327,7 @@ const fetchData = async () => {
             />
             <button
               type="submit"
-              className="md:col-span-2 bg-gray-900 text-white font-bold py-3 mt-2 rounded-lg hover:bg-black transition shadow-md"
+              className="md:col-span-2 bg-gray-900 text-white font-bold py-3 mt-2 rounded-lg hover:bg-black transition shadow-md cursor-pointer "
             >
               Publish Event
             </button>
@@ -434,21 +452,21 @@ const fetchData = async () => {
                         <span className="font-bold w-16 text-gray-500 uppercase text-xs">
                           Date:
                         </span>
-                        <span>{new Date(booking.bookedAt).toLocaleString()}</span>
+                        <span>{new Date(booking.booked_at).toLocaleString()}</span>
                       </p>
                     </div>
 
                     {booking.status === "pending" && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap mt-2 gap-3">
                         <button
                           onClick={() => handleConfirmBooking(booking._id, "paid")}
-                          className="flex-1 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition"
+                          className="flex-1 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition cursor-pointer"
                         >
                           ✓ Approve Paid
                         </button>
                         <button
                           onClick={() => handleCancelBooking(booking._id)}
-                          className="w-20 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-200 text-xs font-bold py-2.5 px-3 rounded-lg transition"
+                          className="flex-1 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-200 text-xs font-bold py-2.5 px-3 rounded-lg transition cursor-pointer"
                         >
                           ✕ Reject
                         </button>

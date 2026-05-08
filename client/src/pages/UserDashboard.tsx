@@ -33,7 +33,9 @@ interface ApiResponse {
 }
 
 const UserDashboard = () => {
-  const { user , loading : authLoading} = useContext(AuthContext) as AuthContextType;
+  const { user, loading: authLoading } = useContext(
+    AuthContext
+  ) as AuthContextType;
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ const UserDashboard = () => {
         setLoading(false);
       }
     })();
-  }, [user, navigate,authLoading]);
+  }, [user, navigate, authLoading]);
 
   const cancelBooking = async (id: string) => {
     if (

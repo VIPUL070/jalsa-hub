@@ -75,24 +75,6 @@ const fetchData = async () => {
       navigate("/login");
       return;
     }
-
-    const fetchData = async () => {
-  try {
-    const [eventsRes, bookingsRes] = await Promise.all([
-      api.get("/events"),
-      api.get("/bookings/my"),
-    ]);
-    console.log(eventsRes);
-    console.log(bookingsRes)
-    setEvents(eventsRes.data.events || []);
-    setBookings(bookingsRes.data.bookings || []);
-    
-  } catch (error) {
-    console.error("Error fetching admin data", error);
-  } finally {
-    setLoading(false);
-  }
-};
     fetchData();
   }, [user, navigate, authLoading]);
 
@@ -131,7 +113,7 @@ const fetchData = async () => {
 
   const handleConfirmBooking = async (id: string, paymentStatus: string) => {
     try {
-      await api.put(`/bookings/${id}/confirm`, { paymentStatus });
+      await api.patch(`/bookings/${id}/confirm`, { paymentStatus });
       fetchData();
     } catch (error) {
       const err = error as AxiosError<{ message: string }>;

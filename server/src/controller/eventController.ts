@@ -48,17 +48,17 @@ const eventsDetails = z.object({
     date: z.coerce.date(),
     location: z.string().min(1),
     category: z.string().min(1),
-    totalSeats: z.number().int().positive(),
-    availableSeats: z.number().int().nonnegative(),
-    ticketPrice: z.number().nonnegative(),
-    imageUrl: z.string().url(),
+    totalSeats: z.coerce.number().int().positive(),
+    ticketPrice: z.coerce.number().nonnegative(),
+    imageUrl: z.string(),
 })
 
 export const createEvent: RequestHandler = async (req, res) => {
     const validData = eventsDetails.safeParse(req.body);
     if (!validData.success) {
         return res.status(403).json({
-            message: "Invalid event details"
+            message: "Invalid event details",
+            errors: validData.error.flatten().fieldErrors,
         })
     }
 
@@ -68,6 +68,7 @@ export const createEvent: RequestHandler = async (req, res) => {
         }
         const event = await Event.create({
             ...validData.data,
+            availableSeats: validData.data.totalSeats,
             createdBy: req.user._id
         })
 

@@ -122,8 +122,8 @@ export const confirmBooking: RequestHandler = async (req, res) => {
 
         await booking.save();
         const updateResult = await Event.updateOne(
-            { _id: event._id, totalSeats: { $gt: 0 } },
-            { $inc: { totalSeats: -1 } }
+            { _id: event._id, availableSeats: { $gt: 0 } },
+            { $inc: { availableSeats: -1 } }
         );
 
         // email will be send on admin confirmation
@@ -174,6 +174,7 @@ export const getMyBookings: RequestHandler = async (req, res) => {
 
 
 export const cancelBooking: RequestHandler = async (req, res) => {
+    console.log("✅ Reached cancelBooking handler");
     try {
         if (!req.user) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -185,12 +186,15 @@ export const cancelBooking: RequestHandler = async (req, res) => {
                 message: "Booking not found"
             })
         }
+        
+        const userId = req.user?._id.toString();
+        const userRole = req.user?.role;
+        const isOwner = booking.userId.toString() === userId;
+        const isAdmin = userRole === 'admin';
 
-        if (booking.userId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({
-                message: "You do not have permission to cancel this booking"
-            });
-        }
+        if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "No permission to reject this booking" });
+    }
 
         if (booking.status === 'cancelled') {
             return res.status(400).json({ message: "Booking already cancelled" });
@@ -200,7 +204,7 @@ export const cancelBooking: RequestHandler = async (req, res) => {
         await booking.save();
         await Event.updateOne(
             { _id: booking.eventId._id },
-            { $inc: { totalSeats: 1 } }
+            { $inc: { availableSeats: 1 } }
         );
 
         res.status(200).json({

@@ -9,6 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AuthContext, type AuthContextType } from "../context/AuthContext";
 import api from "../utils/axios";
+import Input from "../ui/Input";
 
 interface EventData {
   _id: string;
@@ -209,14 +210,12 @@ const EventDetail = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Enter OTP to Confirm
                 </label>
-                <input
+                <Input
                   type="text"
-                  required
                   placeholder="6-digit code"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gray-700 transition shadow-sm font-bold tracking-widest text-center text-lg"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  maxLength={6}
+                  length={6}
                 />
               </div>
             )}

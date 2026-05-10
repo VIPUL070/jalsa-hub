@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import type { AxiosError } from "axios";
 import { FaEyeSlash, FaRegEye } from "react-icons/fa";
+import Input from "../ui/Input";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -70,22 +71,25 @@ const Register = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Full Name
               </label>
-              <input
+              {/* <input
                 type="text"
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 transition shadow-sm"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+              /> */}
+              <Input 
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Email Address
               </label>
-              <input
+              <Input
                 type="email"
-                required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 transition shadow-sm"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -95,10 +99,8 @@ const Register = () => {
                 Password
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? "text" : "password"}
-                  required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 transition shadow-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -123,14 +125,12 @@ const Register = () => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Verification Code (OTP)
             </label>
-            <input
+            <Input
               type="text"
-              required
               placeholder="6-digit code"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-gray-700 transition shadow-sm font-bold tracking-widest text-center text-lg"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              maxLength={6}
+              length={6}
             />
           </div>
         )}

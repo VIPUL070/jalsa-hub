@@ -4,10 +4,10 @@ import api from "../utils/axios";
 import type { AxiosError } from "axios";
 
 export interface User {
-  name: string;
+  name?: string;
   email: string;
-  password: string;
-  otp: string;
+  password?: string;
+  otp?: string;
   token?: string;
   role?: string;
 }

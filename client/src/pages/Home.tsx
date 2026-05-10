@@ -5,10 +5,9 @@ import {
   FaCalendarAlt,
   FaMapMarkerAlt,
   FaSearch,
-  FaRegClock,
   FaTicketAlt,
-  FaShieldAlt,
 } from "react-icons/fa";
+import FeaturesRow from "../components/FeaturesRow";
 
 interface Event {
   _id: string;
@@ -92,40 +91,7 @@ const Home = () => {
 
       {/* Why Choose Us / Features row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 px-4">
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:-translate-y-1 transition duration-300">
-          <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-md shadow-gray-200/50">
-            <FaRegClock />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-3">Fast Booking</h3>
-          <p className="text-gray-500 text-sm leading-relaxed">
-            Secure your tickets instantly with our fast streamlined booking
-            infrastructure built for speed.
-          </p>
-        </div>
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:-translate-y-1 transition duration-300">
-          <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-md shadow-gray-200/50">
-            <FaTicketAlt />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-3">
-            Seamless Access
-          </h3>
-          <p className="text-gray-500 text-sm leading-relaxed">
-            Download tickets instantly or manage them right from your personal
-            dashboard with easily.
-          </p>
-        </div>
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:-translate-y-1 transition duration-300">
-          <div className="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-md shadow-gray-200/50">
-            <FaShieldAlt />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-3">
-            Secure Platform
-          </h3>
-          <p className="text-gray-500 text-sm leading-relaxed">
-            All transactions and registrations are bounded by cutting-edge
-            security and 2FA OTP tech.
-          </p>
-        </div>
+        <FeaturesRow  />
       </div>
 
       <div className="flex items-center justify-between mb-8 px-2 border-b border-gray-200 pb-4">

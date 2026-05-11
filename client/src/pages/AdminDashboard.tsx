@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../utils/axios";
 import type { AxiosError } from "axios";
 import { FaPlus } from "react-icons/fa6";
+import EventList from "../components/EventList";
 
 interface PopulatedEvent {
   _id: string;
@@ -34,7 +35,9 @@ export interface Booking {
 }
 
 const AdminDashboard = () => {
-  const { user, loading: authLoading } = useContext(AuthContext) as AuthContextType;
+  const { user, loading: authLoading } = useContext(
+    AuthContext
+  ) as AuthContextType;
   const navigate = useNavigate();
   const [events, setEvents] = useState<PopulatedEvent[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -52,21 +55,20 @@ const AdminDashboard = () => {
     imageUrl: "",
   });
 
-const fetchData = async () => {
-  try {
-    const [eventsRes, bookingsRes] = await Promise.all([
-      api.get("/events"),
-      api.get("/bookings/my"),
-    ]);
-    setEvents(eventsRes.data.events || []);
-    setBookings(bookingsRes.data.bookings || []);
-    
-  } catch (error) {
-    console.error("Error fetching admin data", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchData = async () => {
+    try {
+      const [eventsRes, bookingsRes] = await Promise.all([
+        api.get("/events"),
+        api.get("/bookings/my"),
+      ]);
+      setEvents(eventsRes.data.events || []);
+      setBookings(bookingsRes.data.bookings || []);
+    } catch (error) {
+      console.error("Error fetching admin data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -155,7 +157,15 @@ const fetchData = async () => {
           onClick={() => setShowEventForm(!showEventForm)}
           className="w-full md:w-auto bg-white text-black font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition shadow-md cursor-pointer"
         >
-          {showEventForm ? <span>Cancel Creation</span> : <span className="flex items-center gap-2"> <FaPlus/>Create New Event</span>}
+          {showEventForm ? (
+            <span>Cancel Creation</span>
+          ) : (
+            <span className="flex items-center gap-2">
+              {" "}
+              <FaPlus />
+              Create New Event
+            </span>
+          )}
         </button>
       </div>
 
@@ -333,38 +343,7 @@ const fetchData = async () => {
                 </li>
               ) : (
                 events.map((event) => (
-                  <li
-                    key={event._id}
-                    className="p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-gray-50 transition border-b border-gray-100 last:border-0"
-                  >
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1 leading-tight">
-                        {event.title}
-                      </h4>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                        <span className="flex items-center gap-1 font-medium">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                          {new Date(event.date).toLocaleDateString()}
-                        </span>
-                        <span className="flex items-center gap-1 font-medium">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              event.availableSeats > 0
-                                ? "bg-green-500"
-                                : "bg-red-500"
-                            }`}
-                          ></div>
-                          {event.availableSeats}/{event.totalSeats} seats
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteEvent(event._id)}
-                      className="w-full sm:w-auto text-red-500 hover:text-white hover:bg-red-500 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold transition shadow-sm shrink-0 cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </li>
+                  <EventList event={event} key={event._id} onClick={() => handleDeleteEvent(event._id)} />
                 ))
               )}
             </ul>
@@ -419,14 +398,22 @@ const fetchData = async () => {
                         <span className="font-bold w-16 text-gray-500 uppercase text-xs">
                           User:
                         </span>
-                        <span className="font-semibold">{booking.userId?.name}</span>
-                        <span className="text-gray-400">({booking.userId?.email})</span>
+                        <span className="font-semibold">
+                          {booking.userId?.name}
+                        </span>
+                        <span className="text-gray-400">
+                          ({booking.userId?.email})
+                        </span>
                       </p>
                       <p className="text-gray-700 flex items-center gap-2 mb-1">
                         <span className="font-bold w-16 text-gray-500 uppercase text-xs">
                           Amount:
                         </span>
-                        <span className={`font-semibold ${booking.amount === 0 ? "text-green-600" : ""}`}>
+                        <span
+                          className={`font-semibold ${
+                            booking.amount === 0 ? "text-green-600" : ""
+                          }`}
+                        >
                           {booking.amount === 0 ? "Free" : `₹${booking.amount}`}
                         </span>
                       </p>
@@ -434,14 +421,18 @@ const fetchData = async () => {
                         <span className="font-bold w-16 text-gray-500 uppercase text-xs">
                           Date:
                         </span>
-                        <span>{new Date(booking.booked_at).toLocaleString()}</span>
+                        <span>
+                          {new Date(booking.booked_at).toLocaleString()}
+                        </span>
                       </p>
                     </div>
 
                     {booking.status === "pending" && (
                       <div className="flex flex-wrap mt-2 gap-3">
                         <button
-                          onClick={() => handleConfirmBooking(booking._id, "paid")}
+                          onClick={() =>
+                            handleConfirmBooking(booking._id, "paid")
+                          }
                           className="flex-1 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border border-green-200 text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition cursor-pointer"
                         >
                           ✓ Approve Paid

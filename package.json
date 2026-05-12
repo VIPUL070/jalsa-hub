@@ -1,0 +1,20 @@
+{
+  "name": "jalsa-hub",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "install:client": "npm install --prefix client",
+    "install:server": "npm install --prefix server",
+    "install:all": "concurrently \"npm run install:client\" \"npm run install:server\"",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "npm run dev --prefix server",
+    "dev": "concurrently -n client,server -c cyan,green \"npm run dev:client\" \"npm run dev:server\"",
+    "start": "npm run start --prefix server",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "build": "concurrently \"npm run build:client\" \"npm run build:server\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

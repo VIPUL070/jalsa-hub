@@ -21,7 +21,7 @@ export interface PopulatedEvent {
 
 export interface Booking {
   _id: string;
-  userId: {
+  userId:string | {
     _id: string;
     name: string;
     email: string;

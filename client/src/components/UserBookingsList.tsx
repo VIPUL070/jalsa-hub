@@ -1,5 +1,4 @@
 import { FaTimesCircle } from "react-icons/fa";
-import type { Booking } from "../pages/AdminDashboard";
 import { Link } from "react-router-dom";
 
 interface LightEvent {
@@ -8,8 +7,13 @@ interface LightEvent {
   date: string;
 }
 
-interface UserBookingListItem extends Omit<Booking, 'eventId'> {
+interface UserBookingListItem {
+  _id: string;
   eventId: LightEvent | null;
+  status: "pending" | "confirmed" | "cancelled";
+  paymentStatus: "non_paid" | "paid";
+  amount: number;
+  booked_at: string;
 }
 
 const UserBookingsList = ({

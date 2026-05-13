@@ -43,8 +43,18 @@ const BookingList = ({
           <span className="font-bold w-16 text-gray-500 uppercase text-xs">
             User:
           </span>
-          <span className="font-semibold">{booking.userId?.name}</span>
-          <span className="text-gray-400">({booking.userId?.email})</span>
+          <span className="font-semibold">
+            {typeof booking.userId === "object" && booking.userId !== null
+              ? booking.userId.name
+              : "Unknown user"}
+          </span>
+          <span className="text-gray-400">
+            (
+            {typeof booking.userId === "object" && booking.userId !== null
+              ? booking.userId.email
+              : ""}
+            )
+          </span>
         </p>
         <p className="text-gray-700 flex items-center gap-2 mb-1">
           <span className="font-bold w-16 text-gray-500 uppercase text-xs">

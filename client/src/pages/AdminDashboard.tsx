@@ -21,7 +21,7 @@ export interface PopulatedEvent {
 
 export interface Booking {
   _id: string;
-  userId:string | {
+  userId: {
     _id: string;
     name: string;
     email: string;
@@ -204,7 +204,11 @@ const AdminDashboard = () => {
                       (b) =>
                         b.paymentStatus === "paid" && b.status === "confirmed"
                     )
-                    .map((b) => b.userId?._id)
+                    .map((b) =>
+                      typeof b.userId === "object" && b.userId !== null
+                        ? b.userId._id
+                        : b.userId
+                    )
                 ).size
               }
             </h3>

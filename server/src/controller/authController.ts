@@ -16,6 +16,12 @@ const registerSchema = zod.object({
 
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+const fireAndForgetOtpEmail = (email: string, otp: string, action: string) => {
+    sendOtpEmail(email, otp, action).catch(err => {
+        console.error(`Background OTP email failed for ${email} (${action}):`, err);
+    });
+};
+
 export const registerUser = async (req: Request, res: Response) => {
     const response = registerSchema.safeParse(req.body);
 
@@ -49,9 +55,8 @@ export const registerUser = async (req: Request, res: Response) => {
         })
 
         const otp = generateOTP();
-        console.log(`OTP for ${email}: ${otp}`)
         await Otp.create({ email, otp, action: 'account_verification' })
-        await sendOtpEmail(email, otp, 'account_verification');
+        fireAndForgetOtpEmail(email, otp, 'account_verification');
 
         res.status(201).json({
             message: "User registered successfully. Please check your email to verify your account.",
@@ -98,10 +103,23 @@ export const loginUser = async (req: Request, res: Response) => {
         }
 
         if (!user.isVerified && user.role !== 'admin') {
-            const otp = generateOTP();
-            await Otp.findOneAndDelete({ email: user.email, action: 'account_verification' });
-            await Otp.create({ email: user.email, otp, action: 'account_verification' });
-            await sendOtpEmail(user.email, otp, 'account_verification');
+            const recentOtp = await Otp.findOne({
+                email: user.email,
+                action: 'account_verification'
+            });
+
+            const SIXTY_SECONDS = 60 * 1000;
+            const isRecent = recentOtp &&
+                (Date.now() - new Date((recentOtp as any).createdAt).getTime()) < SIXTY_SECONDS;
+
+            if (!isRecent) {
+                await Otp.findOneAndDelete({ email: user.email, action: 'account_verification' });
+                const otp = generateOTP();
+                await Otp.create({ email: user.email, otp, action: 'account_verification' });
+
+                fireAndForgetOtpEmail(user.email, otp, 'account_verification');
+            }
+
             return res.status(403).json({
                 message: 'Account not verified',
                 needsVerification: true,
@@ -154,6 +172,12 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
         const user = await User.findOneAndUpdate({ email }, { isVerified: true }, { new: true });
         await Otp.deleteOne({ _id: otpRecord._id });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
 
         const token = jwt.sign({ userId: user?._id, role: user?.role }, JWT_SECRET, { expiresIn: '14d' })
 

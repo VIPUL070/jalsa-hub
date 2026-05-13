@@ -13,11 +13,11 @@ const registerSchema = zod.object({
     email: zod.email(),
     password: zod.string().min(1)
 });
+
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 export const registerUser = async (req: Request, res: Response) => {
     const response = registerSchema.safeParse(req.body);
-    const { name, email, password } = req.body;
 
     if (!response.success) {
         return res.status(411).json({
@@ -25,16 +25,20 @@ export const registerUser = async (req: Request, res: Response) => {
         })
     }
 
+    const { name, email, password } = response.data;
+
     try {
         const userExist = await User.findOne({
-            name: name
+            $or: [{ email }, { name }]
         })
 
         if (userExist) {
-            return res.status(403).json({
-                messgae: "User already exist with this username"
+            const field = userExist.email === email ? "email" : "username";
+            return res.status(409).json({
+                message: `User already exists with this ${field}`
             })
         }
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt)
 
@@ -46,12 +50,11 @@ export const registerUser = async (req: Request, res: Response) => {
 
         const otp = generateOTP();
         console.log(`OTP for ${email}: ${otp}`)
-        await Otp.create({email,otp, action: 'account_verification'})
-        await sendOtpEmail(email,otp,'account_verification');
+        await Otp.create({ email, otp, action: 'account_verification' })
+        await sendOtpEmail(email, otp, 'account_verification');
 
-
-        res.status(200).json({
-            message: "User registered successfully , Please check your email to verify your account",
+        res.status(201).json({
+            message: "User registered successfully. Please check your email to verify your account.",
             email,
         })
 
@@ -69,7 +72,6 @@ const loginSchema = zod.object({
 
 export const loginUser = async (req: Request, res: Response) => {
     const response = loginSchema.safeParse(req.body);
-    const { email, password } = req.body;
 
     if (!response.success) {
         return res.status(411).json({
@@ -77,21 +79,21 @@ export const loginUser = async (req: Request, res: Response) => {
         })
     }
 
+    const { email, password } = response.data;
+
     try {
-        const user = await User.findOne({
-            email
-        })
+        const user = await User.findOne({ email })
 
         if (!user) {
             return res.status(400).json({
-                messgae: "Invalid credentials"
+                message: "Invalid credentials"
             })
         }
 
         const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) {
             return res.status(400).json({
-                message: "Invalid credentails"
+                message: "Invalid credentials"
             })
         }
 
@@ -100,13 +102,17 @@ export const loginUser = async (req: Request, res: Response) => {
             await Otp.findOneAndDelete({ email: user.email, action: 'account_verification' });
             await Otp.create({ email: user.email, otp, action: 'account_verification' });
             await sendOtpEmail(user.email, otp, 'account_verification');
-            return res.status(403).json({ message: 'Account not verified', needsVerification: true, email: user.email });
+            return res.status(403).json({
+                message: 'Account not verified',
+                needsVerification: true,
+                email: user.email
+            });
         }
 
         const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '14d' })
 
         res.status(200).json({
-            message: "Login successfull",
+            message: "Login successful",
             _id: user._id,
             name: user.name,
             email: user.email,
@@ -128,24 +134,25 @@ const otpSchema = zod.object({
 
 export const verifyOtp = async (req: Request, res: Response) => {
     const response = otpSchema.safeParse(req.body)
-    const { email, otp } = req.body;
 
     if (!response.success) {
         return res.status(411).json({
             message: "Error in the data"
-        }) 
+        })
     }
+
+    const { email, otp } = response.data;
 
     try {
         const otpRecord = await Otp.findOne({ email, otp, action: 'account_verification' })
 
         if (!otpRecord) {
             return res.status(400).json({
-                message: "invalid or expired OTP"
+                message: "Invalid or expired OTP"
             })
         }
 
-        const user = await User.findOneAndUpdate({ email }, { isVerified: true });
+        const user = await User.findOneAndUpdate({ email }, { isVerified: true }, { new: true });
         await Otp.deleteOne({ _id: otpRecord._id });
 
         const token = jwt.sign({ userId: user?._id, role: user?.role }, JWT_SECRET, { expiresIn: '14d' })

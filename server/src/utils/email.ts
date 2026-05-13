@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-export const sendBookingEmail = async (userEmail:string, userName: string, eventTitle: string) => {
+export const sendBookingEmail = async (userEmail: string, userName: string, eventTitle: string): Promise<boolean> => {
     try {
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -27,12 +27,14 @@ export const sendBookingEmail = async (userEmail:string, userName: string, event
         };
         await transporter.sendMail(mailOptions);
         console.log('Email sent successfully to', userEmail);
+        return true;
     } catch (error) {
         console.error('Error sending email:', error);
+        return false;
     }
 };
 
-export const sendOtpEmail = async ( userEmail :string, otp: string, type:string ) => {
+export const sendOtpEmail = async (userEmail: string, otp: string, type: string): Promise<boolean> => {
     try {
         const title = type === 'account_verification' ? 'Verify your Jalsa Hub Account' : 'Jalsa Hub Booking Verification';
         const msg = type === 'account_verification'
@@ -56,8 +58,10 @@ export const sendOtpEmail = async ( userEmail :string, otp: string, type:string 
         };
 
         await transporter.sendMail(mailOptions);
-        console.log(`OTP email sent to ${userEmail} for ${type}`)
+        console.log(`OTP email sent to ${userEmail} for ${type}`);
+        return true;
     } catch (error) {
-        console.log(`Error sending OTP email sent to ${userEmail} for ${type}`, error)
+        console.error(`Error sending OTP email to ${userEmail} for ${type}`, error);
+        return false;
     }
 }

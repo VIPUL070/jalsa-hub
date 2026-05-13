@@ -8,6 +8,18 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+const fireAndForgetOtpEmail = (email: string, otp: string, action: string) => {
+    sendOtpEmail(email, otp, action).catch(err => {
+        console.error(`Background OTP email failed for ${email} (${action}):`, err);
+    });
+};
+
+const fireAndForgetBookingEmail = (email: string, name: string, bookingId: string) => {
+    sendBookingEmail(email, name, bookingId).catch(err => {
+        console.error(`Background booking email failed for ${email}:`, err);
+    });
+};
+
 export const sendBookingOTP: RequestHandler = async (req, res) => {
     const otp = generateOTP();
     try {
@@ -21,7 +33,7 @@ export const sendBookingOTP: RequestHandler = async (req, res) => {
             otp,
             action: 'event_booking'
         })
-        await sendOtpEmail(req.user?.email as string, otp, 'event_booking');
+        fireAndForgetOtpEmail(req.user.email, otp, 'event_booking');
         res.status(200).json({
             message: 'OTP sent to email'
         })
@@ -110,9 +122,14 @@ export const confirmBooking: RequestHandler = async (req, res) => {
         if (!event) {
             return res.status(404).json({ message: "Associated event not found" });
         }
+        
+        const updateResult = await Event.updateOne(
+            { _id: event._id, availableSeats: { $gt: 0 } },
+            { $inc: { availableSeats: -1 } }
+        );
 
-        if (event.availableSeats <= 0) {
-            return res.status(400).json({ message: 'No seats available to confirm this booking' });
+        if (updateResult.modifiedCount === 0) {
+            return res.status(400).json({ message: "Failed to secure seat. Event might be full." });
         }
 
         booking.status = 'confirmed';
@@ -121,21 +138,16 @@ export const confirmBooking: RequestHandler = async (req, res) => {
         }
 
         await booking.save();
-        const updateResult = await Event.updateOne(
-            { _id: event._id, availableSeats: { $gt: 0 } },
-            { $inc: { availableSeats: -1 } }
-        );
 
         // email will be send on admin confirmation
-        if (req.user?.email && req.user?.name) {
-            await sendBookingEmail(req.user.email, req.user.name, booking._id.toString());
+          if (req.user?.email && req.user?.name) {
+            fireAndForgetBookingEmail(
+                req.user.email, 
+                req.user.name, 
+                booking._id.toString()
+            );
         }
 
-        if (updateResult.modifiedCount === 0) {
-            booking.status = 'pending';
-            await booking.save();
-            return res.status(400).json({ message: "Failed to secure seat. Event might be full." });
-        }
 
         return res.status(200).json({
             message: "Booking confirmed successfully",
@@ -174,7 +186,6 @@ export const getMyBookings: RequestHandler = async (req, res) => {
 
 
 export const cancelBooking: RequestHandler = async (req, res) => {
-    console.log("✅ Reached cancelBooking handler");
     try {
         if (!req.user) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -200,13 +211,16 @@ export const cancelBooking: RequestHandler = async (req, res) => {
             return res.status(400).json({ message: "Booking already cancelled" });
         }
 
+        const wasConfirmed = booking.status === 'confirmed';
+
         booking.status = 'cancelled'
         await booking.save();
-        await Event.updateOne(
-            { _id: booking.eventId._id },
-            { $inc: { availableSeats: 1 } }
-        );
-
+        if (wasConfirmed) {
+            await Event.updateOne(
+                { _id: booking.eventId._id },          
+                { $inc: { availableSeats: 1 } }
+            );
+        }
         res.status(200).json({
             message: "Booking cancelled successfully"
         });

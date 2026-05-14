@@ -2,6 +2,7 @@
 
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv'
+import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
 
 dotenv.config();
 
@@ -9,12 +10,13 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     pool: true,                    
     maxConnections: 3,             
-    maxMessages: 100,              
+    maxMessages: 100,  
+    family: 4,            
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     }
-})
+}as SMTPTransport.Options)
 
 transporter.verify().then(
     () => console.log('SMTP ready'),

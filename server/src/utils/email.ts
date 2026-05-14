@@ -16,6 +16,11 @@ const transporter = nodemailer.createTransport({
     }
 })
 
+transporter.verify().then(
+    () => console.log('SMTP ready'),
+    (err) => console.error('SMTP verify failed:', err.message),
+);
+
 export const sendBookingEmail = async (userEmail: string, userName: string, eventTitle: string): Promise<boolean> => {
     try {
         const mailOptions = {

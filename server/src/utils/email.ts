@@ -1,8 +1,11 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv'
+import dns from 'dns'
 import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
 
 dotenv.config();
+
+dns.setDefaultResultOrder('ipv4first');
 
 const emailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER;
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -15,6 +18,9 @@ const transporter = !resendApiKey ? nodemailer.createTransport({
     maxConnections: 3,
     maxMessages: 100,
     family: 4,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS

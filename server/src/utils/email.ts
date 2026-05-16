@@ -1,16 +1,14 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv'
-import dns from 'dns'
 import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
 
 dotenv.config();
 
-dns.setDefaultResultOrder('ipv4first');
-
 const emailFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER;
-const resendApiKey = process.env.RESEND_API_KEY;
+const brevoApiKey = process.env.BREVO_API_KEY;
+const senderName = process.env.EMAIL_SENDER_NAME || 'Jalsa Hub';
 
-const transporter = !resendApiKey ? nodemailer.createTransport({
+const transporter = !brevoApiKey ? nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: Number(process.env.SMTP_PORT || 465),
     secure: (process.env.SMTP_SECURE || 'true') === 'true',
@@ -18,9 +16,6 @@ const transporter = !resendApiKey ? nodemailer.createTransport({
     maxConnections: 3,
     maxMessages: 100,
     family: 4,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -32,38 +27,52 @@ if (transporter) {
         () => console.log('SMTP ready'),
         (err) => console.error('SMTP verify failed:', err.message),
     );
+} else if (brevoApiKey) {
+    console.log('Brevo email API ready');
 } else {
-    console.log('Email API ready');
+    console.log('No email transport configured');
 }
+
+const parseEmailAddress = (value: string): { email: string; name?: string } => {
+    const match = value.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+    if (match) {
+        return { name: match[1] || senderName, email: match[2] || '' };
+    }
+    return { email: value.trim(), name: senderName };
+};
 
 const sendEmail = async (to: string, subject: string, html: string): Promise<void> => {
     if (!emailFrom) {
         throw new Error('EMAIL_FROM or EMAIL_USER is required to send email');
     }
 
-    if (resendApiKey) {
-        const response = await fetch('https://api.resend.com/emails', {
+    // Primary: Brevo HTTP API (works reliably on Render, no IPv6 issues)
+    if (brevoApiKey) {
+        const sender = parseEmailAddress(emailFrom);
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${resendApiKey}`,
-                'Content-Type': 'application/json'
+                'api-key': brevoApiKey,
+                'Content-Type': 'application/json',
+                'accept': 'application/json'
             },
             body: JSON.stringify({
-                from: emailFrom,
-                to,
+                sender,
+                to: [{ email: to }],
                 subject,
-                html
+                htmlContent: html
             })
         });
 
         if (!response.ok) {
             const body = await response.text();
-            throw new Error(`Resend email failed: ${response.status} ${body}`);
+            throw new Error(`Brevo email failed: ${response.status} ${body}`);
         }
 
         return;
     }
 
+    // Fallback: SMTP (Gmail) — used for local dev or if Brevo key is missing
     if (!transporter) {
         throw new Error('No email transport configured');
     }
